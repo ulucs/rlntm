@@ -1,30 +1,31 @@
 using Knet, JLD
 
-@knet function wbftwo(x,h;f=:relu,binit=Constant(0),wdims=(1,1))
-	w1 = par(init=Gaussian(0,0.1), dims=wdims)
-	w2 = par(init=Gaussian(0,0.1), dims=wdims)
+@knet function wbftwo(x,h;f=:relu,binit=Constant(0),wdims=(1,1),winit=Gaussian(0,0.1))
+	w1 = par(init=winit, dims=wdims)
+	w2 = par(init=winit, dims=wdims)
 	b = par(init=binit, dims=(1,1))
 	return f(w1*x .+ w2*h .+ b)
 end
 
-@knet function wbfone(x;f=:relu,binit=Constant(0),wdims=(1,1))
-	w1 = par(init=Gaussian(0,0.1), dims=wdims)
+@knet function wbfone(x;f=:relu,binit=Constant(0),wdims=(1,1),winit=Gaussian(0,0.1))
+	w1 = par(init=winit, dims=wdims)
 	b = par(init=binit, dims=(1,1))
 	return f(w1*x .+ b)
 end
 
 @knet function lstmi(x; fbias=1, lsize=100, insize=11)
-    input  = wbftwo(x,h; f=:sigm, wdims=(lsize,insize))
-    forget = wbftwo(x,h; f=:sigm, wdims=(lsize,insize), binit=Constant(fbias))
-    output = wbftwo(x,h; f=:sigm, wdims=(lsize,insize))
-    newmem = wbftwo(x,h; f=:tanh, wdims=(lsize,insize))
+    input  = wbftwo(x,h; f=:sigm, wdims=(lsize,insize),winit=Xavier())
+    forget = wbftwo(x,h; f=:sigm, wdims=(lsize,insize),winit=Xavier(), binit=Constant(fbias))
+    output = wbftwo(x,h; f=:sigm, wdims=(lsize,insize),winit=Xavier())
+    newmem = wbftwo(x,h; f=:tanh, wdims=(lsize,insize),winit=Xavier())
     cell = input .* newmem .+ cell .* forget
     h  = tanh(cell) .* output
     return h
 end
 
-@knet function ntm(x; lsize=100, lout=2, insize=insize)
-	a = lstmi(x; lsize=lsize, insize=insize)
+@knet function ntm(x; lsize=100, lout=2, insize=11)
+	x0 = wbfone(x; wdims=(lsize,insize))
+	a = lstmi(x0; lsize=lsize, insize=lsize)
 	return wbfone(a; f=:soft, wdims=(lout,lsize))
 end
 

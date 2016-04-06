@@ -1,9 +1,12 @@
 include("lstm.jl")
 
 (data, testdata) = initcopy()
-f = compile(:ntm;lsize=11,insize=11)
-for n=1:50
-	traintm(f,data)
+f = compile(:ntm;lsize=11,insize=11,lout=2)
+n = 0
+while true
+	n += 1
+##for n=1:95
+	traintm(f,data;loss=softloss)
 
 	toterr = 0
 	softer = 0
@@ -28,9 +31,10 @@ for n=1:50
 	reset!(f)
 	softers = softers/68
 	toterrs = toterrs/68
-	println("Epoch: ",n,"\nCurrent training accuracy: ",(1-toterr)*100,"%; softloss: ",softer,"\nCurrent test accuracy: ",(1-toterrs)*100,"%; softloss: ",softers)
+	@printf("Epoch: %i\nCurrent training accuracy: %3d%%; softloss: %5.7f\nCurrent test accuracy:     %3d%%; softloss: %5.7f\n",n,(1-toterr)*100,softer,(1-toterrs)*100,softers)
 
-	## if toterrs == 0
-	## 	break
-	## end
+	if toterrs == 0
+		println("Convergence complete!")
+	 	break
+	end
 end
