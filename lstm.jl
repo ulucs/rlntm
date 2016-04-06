@@ -53,11 +53,13 @@ function initcopy()
 	batchsize = 68
 	batchnum = 100
 	testnum = 10
-	initial = load("trainingbatches.jld")
+	##initial = load("trainingbatches.jld")
 	## data0 = initial["traindata"]
 	## datat0 = initial["testdata"]
-	char2int = initial["chardict"]
-	tur2int = initial["turdict"]
+	##char2int = initial["chardict"]
+	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>0,'c'=>11)
+	tur2int = Dict('>'=>1,','=>2)
+	##tur2int = initial["turdict"]
 	## retrieve data from txt instead
 	## data = (Any[],Any[])
 	## data0 = (replace(readall("traindata.txt"),"\r\n",""),replace(readall("trainout.txt"),"\r\n",""))
