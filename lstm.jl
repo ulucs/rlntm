@@ -29,6 +29,44 @@ end
 	return wbfone(a; f=:soft, wdims=(lout,lsize))
 end
 
+function runtm(f,inputstr)
+	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11,'r'=>12,'n'=>13,'s'=>14)
+	int2tur = [">",",","+","."]
+	out = ""
+	reset!(f)
+	## create the input and push forward
+	for c in inputstr
+		imp = zeros(Float32,length(char2int))
+		imp[char2int[c]] = 1
+		res = forw(f,imp)
+		ind = findmax(res)[2]
+		out = out*int2tur[ind]
+	end
+	return ntmpreter(inputstr,out)
+end
+
+function ntmpreter(strin,strout)
+	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
+	funcdict = Dict(
+		'>' => x -> 0,
+		',' => x -> push!(out,x),
+		'+' => x -> push!(mem,x),
+		'.' => x -> push!(out,pop!(mem))
+		)
+	output = ""
+	n = 0
+	out = Any[]
+	mem = Any[]
+	for c in strout
+		n += 1
+		funcdict[c](strin[n])
+	end
+	for it in out
+		output = string(output,it)
+	end
+	return output
+end
+
 function traintm(f, data; loss=softloss, nforw=10, gclip=3.0)
     reset!(f)
     ystack = Any[]
@@ -57,7 +95,7 @@ function initcopy()
 	## data0 = initial["traindata"]
 	## datat0 = initial["testdata"]
 	##char2int = initial["chardict"]
-	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>0,'c'=>11)
+	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11)
 	tur2int = Dict('>'=>1,','=>2)
 	##tur2int = initial["turdict"]
 	## retrieve data from txt instead
@@ -117,5 +155,132 @@ function initcopy()
 		end
 		push!(testdata[2],d)
 	end
+	return data, testdata
+end
+
+function initcopyskip()
+	batchsize = 60
+	batchnum = 9
+	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11,'r'=>12,'n'=>13)
+	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
+
+	data= (Any[],Any[])
+	data0 = (replace(readall("copyin.txt"),"\r\n",""),replace(readall("skipout.txt"),"\r\n",""))
+	for i=1:batchnum
+		d = zeros(Float32, length(char2int), batchsize)
+		for j=1:batchsize
+			d[char2int[data0[1][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[1],d)
+	end
+	for i=1:batchnum
+		d = zeros(Float32, length(tur2int), batchsize)
+		for j=1:batchsize
+			d[tur2int[data0[2][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[2],d)
+	end
+
+	## currently importing directly from txt files
+	testdata= (Any[],Any[])
+	## datat0 = (replace(readall("testx.txt"),"\r\n",""),replace(readall("testskipout.txt"),"\r\n",""))
+	## for i=1:testnum
+	## 	d = zeros(Float32, 11, batchsize)
+	## 	for j=1:batchsize
+	## 		d[char2int[datat0[1][i+(j-1)*testnum]],j] = 1
+	## 	end
+	## 	push!(testdata[1],d)
+	## end
+	## for i=1:testnum
+	## 	d = zeros(Float32, length(tur2int), batchsize)
+	## 	for j=1:batchsize
+	## 		d[tur2int[datat0[2][i+(j-1)*testnum]],j] = 1
+	## 	end
+	## 	push!(testdata[2],d)
+	## end
+	return data, testdata
+end
+
+function initreverse()
+	batchsize = 11
+	batchnum = 60
+	testnum = 10
+	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11,'r'=>12,'n'=>13)
+	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
+
+	data= (Any[],Any[])
+	data0 = (replace(readall("reversein.txt"),"\r\n",""),replace(readall("reverseout.txt"),"\r\n",""))
+	for i=1:batchnum
+		d = zeros(Float32, length(char2int), batchsize)
+		for j=1:batchsize
+			d[char2int[data0[1][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[1],d)
+	end
+	for i=1:batchnum
+		d = zeros(Float32, length(tur2int), batchsize)
+		for j=1:batchsize
+			d[tur2int[data0[2][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[2],d)
+	end
+
+	testdata= (Any[],Any[])
+	return data, testdata
+end
+
+function initcopyrev()
+	batchsize = 120
+	batchnum = 11
+	testnum = 10
+	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11,'r'=>12,'n'=>13)
+	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
+
+	data= (Any[],Any[])
+	data0 = (replace(readall("revcopyin.txt"),"\r\n",""),replace(readall("revcopyout.txt"),"\r\n",""))
+	for i=1:batchnum
+		d = zeros(Float32, length(char2int), batchsize)
+		for j=1:batchsize
+			d[char2int[data0[1][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[1],d)
+	end
+	for i=1:batchnum
+		d = zeros(Float32, length(tur2int), batchsize)
+		for j=1:batchsize
+			d[tur2int[data0[2][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[2],d)
+	end
+
+	testdata= (Any[],Any[])
+	return data, testdata
+end
+
+function initcopyrevskip()
+	batchsize = 180
+	batchnum = 11
+	testnum = 10
+	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11,'r'=>12,'n'=>13,'s'=>14)
+	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
+
+	data= (Any[],Any[])
+	data0 = (replace(readall("revcopyskipin.txt"),"\r\n",""),replace(readall("revcopyskipout.txt"),"\r\n",""))
+	for i=1:batchnum
+		d = zeros(Float32, length(char2int), batchsize)
+		for j=1:batchsize
+			d[char2int[data0[1][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[1],d)
+	end
+	for i=1:batchnum
+		d = zeros(Float32, length(tur2int), batchsize)
+		for j=1:batchsize
+			d[tur2int[data0[2][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[2],d)
+	end
+
+	testdata= (Any[],Any[])
 	return data, testdata
 end
