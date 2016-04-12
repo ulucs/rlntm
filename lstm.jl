@@ -51,7 +51,7 @@ function ntmpreter(strin,strout)
 		'>' => x -> 0,
 		',' => x -> push!(out,x),
 		'+' => x -> push!(mem,x),
-		'.' => x -> push!(out,pop!(mem))
+		'.' => x -> length(mem)>0 ? push!(out,pop!(mem)) : 0
 		)
 	output = ""
 	n = 0
@@ -65,6 +65,27 @@ function ntmpreter(strin,strout)
 		output = string(output,it)
 	end
 	return output
+end
+
+function reinforcegrad(strex,strout,ypred;a=(p,ro)->ro*p*(1-p),b=0)
+	## this is assuming bernoulli distribution
+	## support for different a values comes later
+	ygrad = zeros(Float32,size(ypred))
+	numberex = parse(Float32,strex)
+	numberout = 0
+	try; numberout = parse(Float32,strout); end
+	r = -abs(numberex-numberout)/numberex
+	y = zeros(Float32,size(ypred))
+	ro = (1+tanh(randn(size(ypred))))
+	## construct the 0-1 array for y
+	for i=1:size(y,2)
+		_,m = findmax(y[:,i])
+		y[:,i] = zeros(size(y[:,i]))
+		y[m,i] = 1
+	end
+	## calculate the ygrad
+	ygrad = ro.*r.*(y.-ypred)
+	return ygrad
 end
 
 function traintm(f, data; loss=softloss, nforw=10, gclip=3.0)
@@ -266,6 +287,10 @@ function initcopyrevskip()
 
 	data= (Any[],Any[])
 	data0 = (replace(readall("revcopyskipin.txt"),"\r\n",""),replace(readall("revcopyskipout.txt"),"\r\n",""))
+
+	instrings = split(readall("revcopyskipin.txt"),"\r\n")
+	outstrings = split(readall("revcopyskipoutreinforce.txt"),"\r\n")
+
 	for i=1:batchnum
 		d = zeros(Float32, length(char2int), batchsize)
 		for j=1:batchsize
@@ -282,5 +307,5 @@ function initcopyrevskip()
 	end
 
 	testdata= (Any[],Any[])
-	return data, testdata
+	return data, testdata, instrings, outstrings
 end
