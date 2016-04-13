@@ -119,9 +119,9 @@ function initcopy()
 	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11)
 	tur2int = Dict('>'=>1,','=>2)
 	##tur2int = initial["turdict"]
-	## retrieve data from txt instead
+	## retrieve data trainingdata/from txt instead
 	## data = (Any[],Any[])
-	## data0 = (replace(readall("traindata.txt"),"\r\n",""),replace(readall("trainout.txt"),"\r\n",""))
+	## data0 = (replace(readall("trainingdata/traindata.txt"),"\r\n",""),replace(readall("trainingdata/trainout.txt"),"\r\n",""))
 	
 	## better idea: create random training date to avoid overfitting
 	## for i=1:batchnum
@@ -159,9 +159,9 @@ function initcopy()
 		push!(data[2],d1)
 	end
 
-	## currently importing directly from txt files
+	## currently importing directly trainingdata/from txt files
 	testdata= (Any[],Any[])
-	datat0 = (replace(readall("testx.txt"),"\r\n",""),replace(readall("testout.txt"),"\r\n",""))
+	datat0 = (replace(readall("trainingdata/testx.txt"),"\r\n",""),replace(readall("trainingdata/testout.txt"),"\r\n",""))
 	for i=1:testnum
 		d = zeros(Float32, 11, batchsize)
 		for j=1:batchsize
@@ -186,7 +186,7 @@ function initcopyskip()
 	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
 
 	data= (Any[],Any[])
-	data0 = (replace(readall("copyin.txt"),"\r\n",""),replace(readall("skipout.txt"),"\r\n",""))
+	data0 = (replace(readall("trainingdata/copyin.txt"),"\r\n",""),replace(readall("trainingdata/skipout.txt"),"\r\n",""))
 	for i=1:batchnum
 		d = zeros(Float32, length(char2int), batchsize)
 		for j=1:batchsize
@@ -202,9 +202,9 @@ function initcopyskip()
 		push!(data[2],d)
 	end
 
-	## currently importing directly from txt files
+	## currently importing directly trainingdata/from txt files
 	testdata= (Any[],Any[])
-	## datat0 = (replace(readall("testx.txt"),"\r\n",""),replace(readall("testskipout.txt"),"\r\n",""))
+	## datat0 = (replace(readall("trainingdata/testx.txt"),"\r\n",""),replace(readall("trainingdata/testskipout.txt"),"\r\n",""))
 	## for i=1:testnum
 	## 	d = zeros(Float32, 11, batchsize)
 	## 	for j=1:batchsize
@@ -230,7 +230,7 @@ function initreverse()
 	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
 
 	data= (Any[],Any[])
-	data0 = (replace(readall("reversein.txt"),"\r\n",""),replace(readall("reverseout.txt"),"\r\n",""))
+	data0 = (replace(readall("trainingdata/reversein.txt"),"\r\n",""),replace(readall("trainingdata/reverseout.txt"),"\r\n",""))
 	for i=1:batchnum
 		d = zeros(Float32, length(char2int), batchsize)
 		for j=1:batchsize
@@ -258,7 +258,7 @@ function initcopyrev()
 	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
 
 	data= (Any[],Any[])
-	data0 = (replace(readall("revcopyin.txt"),"\r\n",""),replace(readall("revcopyout.txt"),"\r\n",""))
+	data0 = (replace(readall("trainingdata/revcopyin.txt"),"\r\n",""),replace(readall("trainingdata/revcopyout.txt"),"\r\n",""))
 	for i=1:batchnum
 		d = zeros(Float32, length(char2int), batchsize)
 		for j=1:batchsize
@@ -286,10 +286,10 @@ function initcopyrevskip()
 	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
 
 	data= (Any[],Any[])
-	data0 = (replace(readall("revcopyskipin.txt"),"\r\n",""),replace(readall("revcopyskipout.txt"),"\r\n",""))
+	data0 = (replace(readall("trainingdata/revcopyskipin.txt"),"\r\n",""),replace(readall("trainingdata/revcopyskipout.txt"),"\r\n",""))
 
-	instrings = split(readall("revcopyskipin.txt"),"\r\n")
-	outstrings = split(readall("revcopyskipoutreinforce.txt"),"\r\n")
+	instrings = split(readall("trainingdata/revcopyskipin.txt"),"\r\n")
+	outstrings = split(readall("trainingdata/revcopyskipoutreinforce.txt"),"\r\n")
 
 	for i=1:batchnum
 		d = zeros(Float32, length(char2int), batchsize)
