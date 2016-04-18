@@ -30,6 +30,10 @@ end
 end
 
 function runtm(f,inputstr)
+	return ntmpreter(inputstr,ntmactions(f,inputstr))
+end
+
+function ntmactions(f,inputstr)
 	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11,'r'=>12,'n'=>13,'s'=>14)
 	int2tur = [">",",","+","."]
 	out = ""
@@ -42,7 +46,7 @@ function runtm(f,inputstr)
 		ind = findmax(res)[2]
 		out = out*int2tur[ind]
 	end
-	return ntmpreter(inputstr,out)
+	return out
 end
 
 function ntmpreter(strin,strout)
@@ -67,19 +71,19 @@ function ntmpreter(strin,strout)
 	return output
 end
 
-function reinforcegrad(strex,strout,ypred;a=(p,ro)->ro*p*(1-p),b=0)
+function reinforcegrad(strex,strout,ypred,ydata;a=(p,ro)->ro*p*(1-p),b=0)
 	## this is assuming bernoulli distribution
 	## support for different a values comes later
 	ygrad = zeros(Float32,size(ypred))
 	numberex = parse(Float32,strex)
 	numberout = 0
 	try; numberout = parse(Float32,strout); end
-	r = -abs(numberex-numberout)/numberex
+	r = numberex == numberout ? 1 : -1
 	y = zeros(Float32,size(ypred))
 	ro = (1+tanh(randn(size(ypred))))
 	## construct the 0-1 array for y
 	for i=1:size(y,2)
-		_,m = findmax(y[:,i])
+		_,m = findmax(ydata[:,i])
 		y[:,i] = zeros(size(y[:,i]))
 		y[m,i] = 1
 	end
@@ -290,6 +294,38 @@ function initcopyrevskip()
 
 	instrings = split(readall("trainingdata/revcopyskipin.txt"),"\r\n")
 	outstrings = split(readall("trainingdata/revcopyskipoutreinforce.txt"),"\r\n")
+
+	for i=1:batchnum
+		d = zeros(Float32, length(char2int), batchsize)
+		for j=1:batchsize
+			d[char2int[data0[1][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[1],d)
+	end
+	for i=1:batchnum
+		d = zeros(Float32, length(tur2int), batchsize)
+		for j=1:batchsize
+			d[tur2int[data0[2][i+(j-1)*batchnum]],j] = 1
+		end
+		push!(data[2],d)
+	end
+
+	testdata= (Any[],Any[])
+	return data, testdata, instrings, outstrings
+end
+
+function initrlshort()
+	batchsize = 60
+	batchnum = 5
+	testnum = 10
+	char2int = Dict('1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>10,'c'=>11,'r'=>12,'n'=>13,'s'=>14)
+	tur2int = Dict('>'=>1,','=>2,'+'=>3,'.'=>4)
+
+	data= (Any[],Any[])
+	data0 = (replace(readall("trainingdata/shortrlin.txt"),"\r\n",""),replace(readall("trainingdata/shortrlactions.txt"),"\r\n",""))
+
+	instrings = split(readall("trainingdata/shortrlin.txt"),"\r\n")
+	outstrings = split(readall("trainingdata/shortrlout.txt"),"\r\n")
 
 	for i=1:batchnum
 		d = zeros(Float32, length(char2int), batchsize)

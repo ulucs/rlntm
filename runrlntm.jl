@@ -1,39 +1,42 @@
 include("lstm.jl")
 
-(data, _, instrings, outstrings) = initcopyrevskip()
-f = compile(:ntm;lsize=14,insize=14,lout=4)
-setp(f, lr=1.0)
+(data, _, instrings, outstrings) = initrlshort()
+if !(isdefined(:persist) && persist)
+	f = compile(:ntm;lsize=5,insize=14,lout=4)
+end
+setp(f, lr=0.001)
 clip = 1
 softer = 20
 n = 0
-batchsize = 11
-batchnum = 180
+batchsize = 5
+batchnum = 60
 while true && n<2000
 	n += 1
 
 ##for n=1:95
 	reset!(f)
-    for i=1:length(instrings)
-		ygrad = 0
+	for i=1:length(instrings)
+		ygrad = Any[]
 		totgrad = 0
 
-    	instring = instrings[i]
-    	outstring = runtm(f,instring)
-    	outstringex = outstrings[i]
+		instring = instrings[i]
+		outstring = runtm(f,instring)
+		outstringex = outstrings[i]
 
-    	for j=1:length(instrings[i])
-    		ypred = sforw(f,data[1][j][:,i])
-    		ygrad += reinforcegrad(outstringex,outstring,ypred)
-    		totgrad += 1
-    	end
+		for j=1:length(instrings[i])
+			ypred = sforw(f,data[1][j][:,i])
+			push!(ygrad,reinforcegrad(outstringex,outstring,ypred,data[2][j][:,i]))
+		end
 
-    	ygrad = ygrad ./ totgrad
-    	sback(f,ygrad)
-    	update!(f,gclip=1)
-    	reset!(f,keepstate=true)
-    end
+		for j=1:length(instrings[i])
+			sback(f,pop!(ygrad))
+		end
 
-    reset!(f)
+		update!(f,gclip=0.1)
+		reset!(f)
+	end
+
+	reset!(f)
 	softm1 = softer
 	toterr = 0
 	softer = 0
@@ -51,7 +54,7 @@ while true && n<2000
 
 	if toterr == 0
 		println("Convergence complete!")
-	 	break
+		break
 	end
 	## clip = clip * (softer > softm1 ? 1 : 0.99)
 end
