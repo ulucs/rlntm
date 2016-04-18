@@ -12,7 +12,7 @@
 ## Implemented Tasks
 
 |Task|Syntax|Output|Description|
-|----|------|-----------|
+|----|------|------|-----------|
 |Copy|`c2345`|`2345`|Copies the input number directly to the output string|
 |Reverse|`r124nnn`|`421`|Reverses the input number. Needs the end-of-line character `n` to be provided as our NTM takes one time step for each input character|
 |Skip|`s123`|`23`|Copies the input number while omitting the first character|
