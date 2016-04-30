@@ -71,7 +71,7 @@ function ntmpreter(strin,strout)
 	return output
 end
 
-function reinforcegrad(strex,strout,ypred,ydata;a=(p,ro)->ro*p*(1-p),b=0)
+function reinforcegrad(strex,strout,ypred;a=(p,ro)->ro*p*(1-p),b=0)
 	## this is assuming bernoulli distribution
 	## support for different a values comes later
 	ygrad = zeros(Float32,size(ypred))
@@ -83,7 +83,7 @@ function reinforcegrad(strex,strout,ypred,ydata;a=(p,ro)->ro*p*(1-p),b=0)
 	ro = (1+tanh(randn(size(ypred))))
 	## construct the 0-1 array for y
 	for i=1:size(y,2)
-		_,m = findmax(ydata[:,i])
+		_,m = findmax(ypred[:,i])
 		y[:,i] = zeros(size(y[:,i]))
 		y[m,i] = 1
 	end
